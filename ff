@@ -1,0 +1,120 @@
+#! /bin/bash
+# ff fuzzy find fzf 
+# /Users/Jesse/.recentlyAccess
+# dictItem.py
+
+recentlyAccess=/Users/Jesse/.recentlyAccess
+
+SuffixMatch(){
+	suffix=${1##*.}
+	case $suffix in
+		pdf|xls|xlsx|doc|docx|png|jpg)
+			if read -t 1 -s -p "😊 Default Preview ; 0 😉 Preview ; 😐1 WPS:  " way
+			clear
+			then
+				case $way in 
+					0) open -a /System/Applications/Preview.app $1 ;;
+					1) open $1 ;;
+					*) open -a /System/Applications/Preview.app $1 ;;
+				esac
+			else
+				open -a /System/Applications/Preview.app $1
+			fi ;;
+		md)   open -a Typora $1 ;;
+		scpt) open -a "Script Editor" $1 ;;
+		*)    vim $1 ;;
+	esac
+}
+
+PurgeMerge(){
+	[ -f $recentlyAccess.tmp ] && cat $recentlyAccess.tmp >> $recentlyAccess && rm -r $recentlyAccess.tmp
+	[ -f $recentlyAccess.merge ] && rm -r $recentlyAccess.merge
+	cp $recentlyAccess $recentlyAccess.merge
+	dictResult=`/opt/anaconda3/bin/python3 /opt/mybin/dictItem.py`
+	if [ "$dictResult" != "" ]; then
+		echo "$dictResult" | sort -nr -o $recentlyAccess
+		before=`wc -l $recentlyAccess | awk '{print $1}'`
+		sed -i '/^$/d' $recentlyAccess
+		i=1
+		for f in `cat $recentlyAccess | awk '{print $2}'`
+		do
+			[ -s $f ] && let i+=1 || sed -i "$i d" $recentlyAccess
+		done
+		after=`wc -l $recentlyAccess | awk '{print $1}'`
+		result=`expr $before - $after`
+		echo "FF has been Purged $result entries."
+	else
+		echo "!!! dictItem.py Error !!!"
+	fi
+	echo -n  "AJ has been " 
+	/Users/Jesse/.autojump/bin/autojump --purge
+}
+
+
+
+
+
+if [ "$1" == "" ]; then
+	fzfResult=`fzf`
+	if [ "$fzfResult" != "" ]; then
+		SuffixMatch $fzfResult
+		echo "   1 "${fzfResult/./`pwd`} >> $recentlyAccess
+	else
+		echo "See You Next Time,Good Luck 😊😊😊"
+	fi
+elif [ -d $1 ]; then
+	cd `pwd`/$1
+	fzfResult=`fzf`
+	if [ "$fzfResult" != "" ]; then
+		SuffixMatch $fzfResult
+		echo "   1 "${fzfResult/./`pwd`} >> $recentlyAccess
+	else
+		echo "See You Next Time,Good Luck 😊😊😊"
+	fi
+elif [ "$1" == "--merge" ] || [ "$1" == "--purge" ]; then
+	PurgeMerge
+elif [ "$1" == "--add" ]; then
+	if [ "$2" != "" ]; then
+		before=`grep $(pwd)/$2 $recentlyAccess | awk '{print $1}'`
+		if [ "$before" == "" ]; then
+			before=0
+		fi
+		if [ "$3" != "" ]; then
+			# ff --add file 10
+			echo "   $3 "`pwd`/$2 >> $recentlyAccess
+			echo "add" `pwd`/$2 "weight $3 to $recentlyAccess current weight" `expr $before + $3`
+		else
+			echo "   1 "`pwd`/$2  >> $recentlyAccess
+			echo "add" `pwd`/$2 "weight 1 to $recentlyAccess current weight" `expr $before + 1`
+		fi
+	fi
+	PurgeMerge
+else 
+	rgResult=`rg -i $1 $recentlyAccess | awk '{print $2}' | fzf`
+	if [ "$rgResult" != "" ] && [ -s $rgResult ]; then
+		SuffixMatch $rgResult
+		echo "   1 "$rgResult >> $recentlyAccess.tmp
+	else
+		vimResult=`rg '^>' /Users/Jesse/.viminfo|cut -c3-|sed 's,~,'"$HOME"',' | rg -i $1 | fzf`
+		if [ "$vimResult" != "" ] && [ -s $vimResult ] ; then
+			vim $vimResult
+			echo "   1 "$vimResult >> $recentlyAccess
+		else	
+			mdResult=`mdfind -name $1 | fzf `
+			if [ "${mdResult}" == "" ]; then
+				echo "Not Any Match 😳😳😳"
+			else
+				SuffixMatch $mdResult
+				echo "   1 "$mdResult >> $recentlyAccess
+			fi
+		fi
+	fi
+fi
+
+if [ -f $recentlyAccess.tmp ]; then
+	histsize=`wc -l $recentlyAccess.tmp | awk '{print $1}'`
+	if [ $histsize -ge 50 ]; then
+		echo -e "\033[31m\t!!! FF Merge Now !!!\033[0m"
+		PurgeMerge
+	fi
+fi
