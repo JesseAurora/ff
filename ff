@@ -9,7 +9,7 @@ SuffixMatch(){
 	suffix=${1##*.}
 	case $suffix in
 		pdf|xls|xlsx|doc|docx|png|jpg)
-			if read -t 1 -s -p "😊 Default Preview ; 0 😉 Preview ; 😐1 WPS:  " way
+			if read -t 1 -s -p "😊 Default Preview ; 0 😉 Preview ; 😐1 Others:  " way
 			clear
 			then
 				case $way in 

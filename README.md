@@ -1,15 +1,20 @@
-##### FF Fuzzy Find 
+### FF Fuzzy Find 
 
 inspired by fzf <https://github.com/junegunn/fzf> 
 
 ff a command line search gadget inspired by fzf , auto clean merge add weight to recentlyAccess
 
-search sequence 
+![ff](README.assets/ff.png)
 
-1. recentlyAccess (sort by weight desc)
-2. viminfo (keep recently vim edited file)
-3. mdfind (mac spotlight command line stuff)
-4. after all search not match echo "Not Any Match 😳😳😳"
+### search sequence 
+
+- recentlyAccess (sort by weight desc)
+
+- viminfo (keep recently vim edited file)
+
+- mdfind (mac spotlight command line stuff)
+
+- after all search not match echo "Not Any Match 😳😳😳"
 
 after match it will be  open by different app depends on different suffix
 
@@ -17,37 +22,25 @@ once recentlyAccess line count great or equal 50 it will auto invoke PurgeMerge
 
 
 
-##### Usage
+### Usage
 
-- ff fileName
+- ff filename
 
-  search sequence 
+  search from recentlyAccess/viminfo/mdfind
 
-  1. recentlyAccess 
-
-     sort by weight desc  every time match it will add weight 1 to recentlyAccess.tmp waiting for merge 
-
-     the  more weight number bigger the more filename search time 
-
-  2. viminfo 
-
-     keep recently vim edited file) once match it will auto add file into recentlyAccess default weight 1
-
-  3. mdfind 
-
-     mac spotlight command line stuff  once match it will auto add file into recentlyAccess default weight 1
-
-  4. after all search not match echo "Not Any Match 😳😳😳"
-
-  after match it will be  open by different app depends on different suffix
+  
 
 - ff  
 
   list current directory all files
 
+  
+
 - ff directory 
 
   list directory all files
+
+  
 
 - ff --merge / ff --purge
 
@@ -56,6 +49,8 @@ once recentlyAccess line count great or equal 50 it will auto invoke PurgeMerge
   and then  delete the  filename in recentlyAccess  that not exist
 
   PurgeMerge actuall use python dict dictItem.py to merge weight count
+
+  
 
 - ff --add fileName weightNum
 
@@ -71,22 +66,24 @@ once recentlyAccess line count great or equal 50 it will auto invoke PurgeMerge
 
   after add to recentlAccess immediately invoke PurgeMerger function in case recentlyAccess had this file before
 
-  
 
-##### Requisite
+### Requisite
 
 - fzf
-
 - fd
-
 - bat
-
 - ridgrep
 - autojump
+- fish shell
 
+### FzF config
 
-
-##### FzF config
+\#ignore stuff
 
 export FZF_DEFAULT_COMMAND="fd --exclude={.git,.idea,.vscode,.sass-cache,node_modules,build} --type f"
+
+
+
+\# if return result only one open it directly 
+
 export FZF_DEFAULT_OPTS=" --select-1 --exit-0  --preview 'bat --color=always --style=header,grid --line-range :300 {}' --preview-window 'up:80%' "
